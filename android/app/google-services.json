@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "131541464486",
+    "project_id": "flutter-question-answer",
+    "storage_bucket": "flutter-question-answer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131541464486:android:e1172390db8d83fe100b67",
+        "android_client_info": {
+          "package_name": "com.example.flutter_question_answer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1duV6anJHMHS8nNJM7swHpznOnhTtQSM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

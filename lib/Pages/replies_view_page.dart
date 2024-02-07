@@ -152,7 +152,6 @@ class _RepliesViewPageState extends State<RepliesViewPage> {
           ),
           body: Padding(
             padding: EdgeInsets.all(16.0),
-            // child: Text(widget.text),
             child: Column(
               children: <Widget>[
                 Container(
@@ -268,7 +267,8 @@ class _RepliesViewPageState extends State<RepliesViewPage> {
                         Map<String, dynamic> userData =
                             userDoc.data() as Map<String, dynamic>;
 
-                        await FirebaseFirestore.instance
+                        DocumentReference replyRef = await FirebaseFirestore
+                            .instance
                             .collection('questions')
                             .doc(widget.questionId)
                             .collection('replies')
@@ -280,13 +280,40 @@ class _RepliesViewPageState extends State<RepliesViewPage> {
                           'uid': currentUser.uid,
                         });
 
-                        BuildContext context = this.context;
+                        // 質問のドキュメントを取得して、質問の作成者のUIDを取得
+                        DocumentSnapshot questionDoc = await FirebaseFirestore
+                            .instance
+                            .collection('questions')
+                            .doc(widget.questionId)
+                            .get();
+                        String questionCreatorUid = questionDoc['uid'];
+
+                        // 質問の作成者が現在のユーザーでない場合にのみ通知を送る
+                        if (currentUser.uid != questionCreatorUid) {
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(questionCreatorUid)
+                              .collection('notifications')
+                              .add({
+                            'senderUid': currentUser.uid,
+                            'senderNickname': userData['nickname'],
+                            'qid': widget.questionId,
+                            'repliesId': replyRef.id, // 追加した返信のID
+                            'createdAt': FieldValue.serverTimestamp(),
+                            'type': 'reply',
+                            'sendAgainCount': 0,
+                            'readCount': 1,
+                          });
+                        }
 
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => QuestionDetailPage(
-                                questionId: widget.questionId),
+                              questionId: widget.questionId,
+                              showDialog: true,
+                              showPostedMessage: true,
+                            ),
                           ),
                         );
                       }
@@ -311,7 +338,7 @@ class _RepliesViewPageState extends State<RepliesViewPage> {
                       ),
                       alignment: Alignment.center,
                       child: const Text(
-                        '確認',
+                        '投稿',
                         style: TextStyle(
                           fontSize: 18,
                           color: Colors.black, // テキストの色を設定

@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'Pages/first_page.dart';
+import 'Pages/home_page.dart';
+import 'Pages/profile.dart';
 import 'Provider/tab_index_provider.dart';
 import 'services/firebase_initializer.dart';
 import 'Provider/auth_notifier.dart';
@@ -32,19 +34,28 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AuthNotifier(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthNotifier()),
+        ChangeNotifierProvider(
+            create: (context) =>
+                UserProfileProvider()), // UserProfileProviderを追加
+      ],
       child: MaterialApp(
         theme: ThemeData(
           textTheme: GoogleFonts.notoSansTextTheme(
             Theme.of(context).textTheme,
           ),
+          progressIndicatorTheme: ProgressIndicatorThemeData(
+            color: Colors.orange,
+          ),
         ),
         title: 'Flutter Demo',
         initialRoute: '/', // initial screen route
         routes: {
-          '/': (context) =>
-              FirstPage(), // set registration screen as initial screen// set route for home screen
+          '/': (context) => FirstPage(),
+          '/homePage': (context) =>
+              HomePage(), // set registration screen as initial screen// set route for home screen
         },
         builder: (context, child) {
           return Container(

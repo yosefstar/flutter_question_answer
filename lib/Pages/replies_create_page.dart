@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'replies_view_page.dart';
 
@@ -16,6 +14,7 @@ class RepliesCreatePage extends StatefulWidget {
 
 class _RepliesCreatePageState extends State<RepliesCreatePage> {
   final TextEditingController controller = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -79,58 +78,58 @@ class _RepliesCreatePageState extends State<RepliesCreatePage> {
           ),
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 22.0),
-            child: Column(
-              children: <Widget>[
-                FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('questions')
-                      .doc(widget.questionId)
-                      .get(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<DocumentSnapshot> snapshot) {
-                    if (snapshot.hasError) {
-                      return const Text('エラーが発生しました');
-                    }
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: <Widget>[
+                  FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('questions')
+                        .doc(widget.questionId)
+                        .get(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return const Text('エラーが発生しました');
+                      }
 
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      Map<String, dynamic> questionData =
-                          snapshot.data!.data() as Map<String, dynamic>;
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        Map<String, dynamic> questionData =
+                            snapshot.data!.data() as Map<String, dynamic>;
 
-                      final textPainter = TextPainter(
-                        text: TextSpan(
-                          text: questionData['text1'],
-                          style: const TextStyle(
-                            fontFamily: 'NotoSansJP',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                            decoration: TextDecoration.underline,
+                        final textPainter = TextPainter(
+                          text: TextSpan(
+                            text: questionData['text1'],
+                            style: const TextStyle(
+                              fontFamily: 'NotoSansJP',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
-                        ),
-                        textDirection: TextDirection.ltr,
-                      );
-                      textPainter.layout();
-                      return QuestionCard(
-                          textPainter: textPainter, questionData: questionData);
-                    }
-                    return const CircularProgressIndicator();
-                  },
-                ),
-                const SizedBox(height: 36),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'あなたの回答',
-                    style: TextStyle(
-                      fontSize: 14.0, // フォントサイズを14に設定
-                      fontWeight: FontWeight.bold, // テキストを太字に設定
+                          textDirection: TextDirection.ltr,
+                        );
+                        textPainter.layout();
+                        return QuestionCard(
+                            textPainter: textPainter,
+                            questionData: questionData);
+                      }
+                      return const CircularProgressIndicator();
+                    },
+                  ),
+                  const SizedBox(height: 36),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'あなたの回答',
+                      style: TextStyle(
+                        fontSize: 14.0, // フォントサイズを14に設定
+                        fontWeight: FontWeight.bold, // テキストを太字に設定
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  width: 387, // 幅を387に設定
-                  // 高さはTextFieldのmaxLinesとpaddingで調整
-                  child: TextField(
+                  const SizedBox(height: 12),
+                  TextFormField(
                     controller: controller,
                     decoration: InputDecoration(
                       hintText: '1文字〜60文字で入力してください。',
@@ -146,28 +145,64 @@ class _RepliesCreatePageState extends State<RepliesCreatePage> {
                       ),
                     ),
                     keyboardType: TextInputType.multiline,
-                    maxLines: 5, // 高さを近似的に調整するための行数
-                  ),
-                ),
-                Container(
-                  width: 387, // 幅を387に設定
-                  height: 174, // 高さを174に設定
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RepliesViewPage(
-                            questionId: widget.questionId,
-                            text: controller.text,
-                          ),
-                        ),
-                      );
+                    maxLines: 5,
+                    validator: (value) {
+                      if (value != null && value.length > 60) {
+                        return '60文字以内で入力してください。';
+                      }
+                      return null;
                     },
-                    // InkWellの子要素をここに配置
                   ),
-                )
-              ],
+                  SizedBox(
+                    height: 32,
+                  ),
+                  InkWell(
+                    onTap: () {
+                      if (_formKey.currentState!.validate()) {
+                        // バリデーションが成功した場合の処理
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RepliesViewPage(
+                              questionId: widget.questionId,
+                              text: controller.text,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity, // Containerを画面幅いっぱいに広げる
+                      height: 50, // ボタンの高さ
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0CD64), // ボタンの背景色
+                        borderRadius: BorderRadius.circular(29.0), // ボタンの角の丸み
+                        border: Border.all(
+                          color: Colors.black, // ボタンの枠線の色
+                          width: 2.0, // ボタンの枠線の太さ
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color.fromARGB(255, 24, 24, 55), // ボタンの影の色
+                            spreadRadius: 1, // 影の広がり
+                            blurRadius: 0, // 影のぼかし
+                            offset: Offset(1, 3), // 影の位置
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        '確認', // ボタンのテキスト
+                        style: TextStyle(
+                          fontSize: 18, // テキストのサイズ
+                          color: Colors.black, // テキストの色
+                          fontWeight: FontWeight.bold, // テキストの太さ
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),

@@ -170,28 +170,31 @@ class SignInPage extends StatelessWidget {
                 print('入力されたメールアドレス: $email'); // メールアドレスを出力
                 print('入力されたパスワード: $password'); // パスワードを出力
                 try {
-                  await Provider.of<AuthNotifier>(context, listen: false)
-                      .signIn(email, password);
-                  // If there is no error, the sign in is successful.
-                  // Save the context to a local variable before the async gap.
-                  BuildContext localContext = context;
-                  Navigator.push(
-                    localContext,
-                    MaterialPageRoute(
-                      builder: (localContext) => HomePage(email: email),
-                    ),
+                  UserCredential userCredential =
+                      await FirebaseAuth.instance.signInWithEmailAndPassword(
+                    email: email,
+                    password: password,
                   );
-
-                  // ログインしたユーザーの情報を取得する
-                  User? user = FirebaseAuth.instance.currentUser;
-
+                  User? user = userCredential.user;
                   if (user != null) {
                     final DocumentSnapshot docSnap = await FirebaseFirestore
                         .instance
                         .collection('users')
                         .doc(user.uid)
                         .get();
-                    print('ニックネーム: ${docSnap.get('nickname')}');
+                    if (docSnap.exists) {
+                      print('ニックネーム: ${docSnap.get('nickname')}');
+                      // ログイン成功時の処理
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HomePage(),
+                        ),
+                      );
+                    } else {
+                      // ユーザーが存在しない場合の処理
+                      print('ユーザーが存在しません');
+                    }
                   }
                 } catch (e) {
                   print('エラー: $e');

@@ -133,13 +133,18 @@ class _RegisterPageState extends State<RegisterPage> {
     'icon6'
   ];
   List<String> iconUrls = [
-    'http://flat-icon-design.com/f/f_object_112/s512_f_object_112_0bg.png',
-    'http://flat-icon-design.com/f/f_object_149/s512_f_object_149_0bg.png',
-    'http://flat-icon-design.com/f/f_object_174/s512_f_object_174_0bg.png',
-    'http://flat-icon-design.com/f/f_object_169/s512_f_object_169_0bg.png',
-    'http://flat-icon-design.com/f/f_object_157/s512_f_object_157_2bg.png',
-    'http://flat-icon-design.com/f/f_object_111/s512_f_object_111_0bg.png'
+    'https://firebasestorage.googleapis.com/v0/b/flutter-question-answer.appspot.com/o/1.png?alt=media&token=5fef8a01-f454-45ae-a0ee-4aef9ba7bdd1',
+    'https://firebasestorage.googleapis.com/v0/b/flutter-question-answer.appspot.com/o/2.png?alt=media&token=747c989a-6dba-4115-b2de-1a1402523be0',
+    'https://firebasestorage.googleapis.com/v0/b/flutter-question-answer.appspot.com/o/3.png?alt=media&token=db713cdc-4206-4ca1-899c-33fdf4a397e4',
+    'https://firebasestorage.googleapis.com/v0/b/flutter-question-answer.appspot.com/o/4.png?alt=media&token=60cef998-af0f-4af6-8d74-ceb6090528ef',
+    'https://firebasestorage.googleapis.com/v0/b/flutter-question-answer.appspot.com/o/5.png?alt=media&token=854d7b3b-8cfe-4969-92c2-948af7f99672',
+    'https://firebasestorage.googleapis.com/v0/b/flutter-question-answer.appspot.com/o/6.png?alt=media&token=9370a145-8efd-4e8b-82a4-a68ccbff93e8'
   ];
+
+  bool isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    return emailRegex.hasMatch(email);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +245,7 @@ class _RegisterPageState extends State<RegisterPage> {
               height: 8,
             ),
             TextFormField(
-              controller: emailController,
+              controller: nicknameController,
               decoration: InputDecoration(
                 contentPadding: EdgeInsets.fromLTRB(10, 15, 0, 15),
                 enabledBorder: OutlineInputBorder(
@@ -262,6 +267,15 @@ class _RegisterPageState extends State<RegisterPage> {
                 filled: true,
                 fillColor: Colors.white,
               ),
+              keyboardType: TextInputType.emailAddress, // キーボードタイプをメールアドレス用に設定
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'メールアドレスを入力してください。'; // 空の場合のエラーメッセージ
+                } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value)) {
+                  return '無効なメールアドレス形式です。'; // メールアドレスの形式が無効な場合のエラーメッセージ
+                }
+                return null; // 入力が有効な場合はnullを返す
+              },
             ),
             SizedBox(
               height: 20,
@@ -287,7 +301,7 @@ class _RegisterPageState extends State<RegisterPage> {
               height: 8,
             ), //
             TextFormField(
-              controller: passwordController,
+              controller: emailController,
               decoration: InputDecoration(
                 contentPadding: EdgeInsets.fromLTRB(10, 15, 0, 15),
                 enabledBorder: OutlineInputBorder(
@@ -334,7 +348,7 @@ class _RegisterPageState extends State<RegisterPage> {
               height: 8,
             ), //
             TextFormField(
-              controller: nicknameController,
+              controller: passwordController,
               decoration: InputDecoration(
                 contentPadding: EdgeInsets.fromLTRB(10, 15, 0, 15),
                 enabledBorder: OutlineInputBorder(
@@ -362,36 +376,79 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             InkWell(
               onTap: () async {
+                // メールアドレスの形式を検証
+                if (!isValidEmail(emailController.text)) {
+                  // メールアドレスが無効な場合、エラーメッセージを表示
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('エラー'),
+                      content: Text('無効なメールアドレス形式です。'),
+                    ),
+                  );
+                  return; // ここで処理を中断
+                }
+
+                // FirebaseAuthのインスタンスを取得
                 final FirebaseAuth auth = FirebaseAuth.instance;
 
-                final UserCredential userCredential =
-                    await auth.createUserWithEmailAndPassword(
-                  email: emailController.text,
-                  password: passwordController.text,
-                );
-                final User? user = userCredential.user;
-                final String uid = user != null ? user.uid : '';
-
-                final userData = <String, dynamic>{
-                  "uid": uid,
-                  "email": emailController.text,
-                  "password": passwordController.text,
-                  "nickname": nicknameController.text,
-                  "iconUrl": iconUrls[selectedIconIndex],
-                  "createdAt": FieldValue.serverTimestamp(), // 選択されたアイコンのURL
-                };
-
-                FirebaseFirestore db = FirebaseFirestore.instance;
                 try {
-                  await db
-                      .collection("users")
-                      .doc(uid)
-                      .set(userData)
-                      .then((void value) => print('User added with ID: $uid'));
-                  Navigator.of(context)
-                      .pushReplacementNamed('/home'); // ホーム画面に遷移
+                  // ユーザーを作成
+                  final UserCredential userCredential =
+                      await auth.createUserWithEmailAndPassword(
+                    email: emailController.text,
+                    password: passwordController.text,
+                  );
+
+                  // Firestoreのインスタンスを取得
+                  final FirebaseFirestore firestore =
+                      FirebaseFirestore.instance;
+
+                  // usersコレクションに新規ユーザーを追加
+                  await firestore
+                      .collection('users')
+                      .doc(userCredential.user!.uid)
+                      .set({
+                    "uid": userCredential.user!.uid,
+                    "email": emailController.text,
+                    "nickname": nicknameController.text,
+                    "iconUrl": iconUrls[selectedIconIndex],
+                    "createdAt": FieldValue.serverTimestamp(),
+                  });
+
+                  // 登録成功時の処理...
+                  // HomePageに遷移する
+                  Navigator.pushReplacementNamed(context, '/homePage');
+                } on FirebaseAuthException catch (e) {
+                  if (e.code == 'email-already-in-use') {
+                    // メールアドレスが既に使用されている場合の処理
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('エラー'),
+                        content: Text('このメールアドレスは既に使用されています。'),
+                      ),
+                    );
+                  } else {
+                    // その他のFirebase Authエラーの処理
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('エラー'),
+                        content: Text('登録に失敗しました: ${e.message}'),
+                      ),
+                    );
+                  }
+                  return; // ここで処理を中断
                 } catch (e) {
-                  print('エラー: $e');
+                  print('登録に失敗しました: $e');
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('エラー'),
+                      content: Text('登録に失敗しました: $e'),
+                    ),
+                  );
                 }
               },
               child: Container(

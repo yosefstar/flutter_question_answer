@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'home_all_page.dart';
-import 'home_my_page.dart'; // Importing home_my_page.dart
+import 'home_all_page.dart' as all_page;
+import 'home_all_page.dart'; // エイリアス all_page を追加
+import 'home_my_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'notification_page.dart';
@@ -12,9 +13,7 @@ import 'profile.dart';
 import 'settings_page.dart';
 
 class HomePage extends StatefulWidget {
-  final String email;
-
-  const HomePage({Key? key, required this.email}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -24,16 +23,8 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  late TabController _tabController;
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    requestPermission();
-    getToken();
-  }
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   void requestPermission() async {
     NotificationSettings settings = await messaging.requestPermission(
@@ -73,54 +64,58 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     User? user = auth.currentUser;
-    // String? email = user != null ? user.email : 'No user signed in';
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: firestore.collection('users').doc(user?.uid).get(),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .snapshots(),
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasError) {
           return const Text("エラーが発生しました");
         }
 
-        if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> data =
-              snapshot.data!.data() as Map<String, dynamic>;
-          return Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/background.jpg'), // 画像ファイルのパスを指定
-                fit: BoxFit.cover, // 画像が全画面になるように設定
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return const CircularProgressIndicator();
+          default:
+            if (!snapshot.hasData) {
+              return const Text("データが存在しません");
+            }
+            Map<String, dynamic> data =
+                snapshot.data!.data() as Map<String, dynamic>;
+            return Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/background.jpg'), // 画像ファイルのパスを指定
+                  fit: BoxFit.cover, // 画像が全画面になるように設定
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width * 0.0512),
+              child: SafeArea(
                 child: Scaffold(
                   backgroundColor: Colors.transparent,
                   appBar: PreferredSize(
                     preferredSize: const Size.fromHeight(80.0), // AppBarの高さを設定
-                    child: Row(
-                      children: <Widget>[
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ProfilePage()),
-                            );
-                          },
-                          child: Container(
-                            // margin: const EdgeInsets.only(top: 0, left: 33.0),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal:
+                              MediaQuery.of(context).size.width * 0.0512),
+                      child: Row(
+                        children: <Widget>[
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ProfilePage()),
+                              );
+                            },
+                            highlightColor:
+                                Colors.transparent, // タップ時のハイライト色を透明に
+                            splashColor: Colors.transparent,
                             child: Container(
                               width: 50.0,
                               height: 50.0,
@@ -147,138 +142,345 @@ class _HomePageState extends State<HomePage>
                               ),
                             ),
                           ),
-                        ),
-                        // SizedBox(width: 30.0),
-                        Expanded(
-                          child: Center(
-                            child: SvgPicture.asset(
-                              'assets/test3.svg',
-                              semanticsLabel: 'shopping',
-                              width: 190,
-                              height: 25,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 5.0),
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => NotificationPage(),
-                              ), // NotificationPageに遷移
-                            );
-                          },
-                          child: SvgPicture.asset(
-                            'assets/icon_bell.svg',
-                            width: 22,
-                            height: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SettingsPage(),
-                              ), // NotificationPageに遷移
-                            );
-                          },
-                          child: SvgPicture.asset(
-                            'assets/icon_settings.svg',
-                            width: 22,
-                            height: 24,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  body: Column(
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 386.0, // 幅を設定
-                          height: 57.0,
-                          decoration: BoxDecoration(
-                            color: const Color(0xffffffff), // 背景色を設定
-                            borderRadius: BorderRadius.circular(28.5),
-                            border: Border.all(
-                              color: Colors.black, // 線の色を設定
-                              width: 1.5, // 線の幅を設定
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color.fromARGB(255, 24, 24, 55)
-                                    .withOpacity(1), // 影の色を設定
-                                spreadRadius: 0.1, // 影の広がりを設定
-                                blurRadius: 1, // 影のぼかしを設定
-                                offset: const Offset(3, 3), // 影の位置を設定
+                          // SizedBox(width: 30.0),
+                          Expanded(
+                            child: Center(
+                              child: SvgPicture.asset(
+                                'assets/test3.svg',
+                                semanticsLabel: 'shopping',
+                                width: 190,
+                                height: 25,
                               ),
-                            ],
+                            ),
                           ),
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  right: 120.0), // 左側に余白を追加
-                              child: TextField(
-                                textAlign: TextAlign.center,
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 15.0),
-                                  border: InputBorder.none,
-                                  prefixIcon: Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 20.0, right: 10.0),
-                                    child: Image.asset(
-                                      'assets/icon_search.png', // 画像のパスを指定
-                                      width: 22.0, // 幅を調整
-                                      height: 22.0, // 高さを調整
+
+                          const SizedBox(width: 5.0),
+                          InkWell(
+                            onTap: () async {
+                              final user = FirebaseAuth.instance.currentUser;
+                              if (user != null) {
+                                final userId = user.uid;
+                                final firestore = FirebaseFirestore.instance;
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => NotificationPage(),
+                                  ),
+                                );
+                                final userNotificationsRef = firestore
+                                    .collection('users')
+                                    .doc(userId)
+                                    .collection('notifications');
+
+                                // Firestoreのバッチ処理を開始
+                                final batch = firestore.batch();
+
+                                // すべての通知のreadCountを1増やす
+                                final querySnapshotIncrement =
+                                    await userNotificationsRef.get();
+                                for (var doc in querySnapshotIncrement.docs) {
+                                  batch.update(doc.reference,
+                                      {'readCount': FieldValue.increment(1)});
+                                }
+
+                                // readCountが10のドキュメントを検索して削除
+                                final querySnapshotDelete =
+                                    await userNotificationsRef
+                                        .where('readCount', isEqualTo: 10)
+                                        .get();
+                                for (var doc in querySnapshotDelete.docs) {
+                                  batch.delete(doc.reference);
+                                }
+
+                                // バッチ処理をコミットして更新と削除を適用
+                                await batch.commit();
+
+                                // NotificationPageに遷移
+                              }
+                            },
+                            highlightColor:
+                                Colors.transparent, // タップ時のハイライト色を透明に
+                            splashColor: Colors.transparent,
+                            child: SizedBox(
+                              height: 36,
+                              width: 25,
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    top: 6,
+                                    child: SvgPicture.asset(
+                                      'assets/icon_bell.svg',
+                                      width: 22,
+                                      height: 24,
                                     ),
                                   ),
-                                  hintText: '気になる質問を探してみよう...', // ヒントテキストを追加
-                                  hintStyle: const TextStyle(
-                                    fontSize: 15.0, // フォントサイズを大きくする
-                                    color: Colors.grey, // フォントカラーを設定
+                                  Positioned(
+                                    left: 11.0,
+                                    child: StreamBuilder<QuerySnapshot>(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(FirebaseAuth
+                                              .instance.currentUser?.uid)
+                                          .collection('notifications')
+                                          .where('readCount', isEqualTo: 1)
+                                          .snapshots(),
+                                      builder: (BuildContext context,
+                                          AsyncSnapshot<QuerySnapshot>
+                                              snapshot) {
+                                        if (snapshot.hasError) {
+                                          return Text(
+                                              'Error: ${snapshot.error}');
+                                        }
+                                        switch (snapshot.connectionState) {
+                                          case ConnectionState.waiting:
+                                            return Text('Loading...');
+                                          default:
+                                            // ドキュメントの数が0より大きい場合のみContainerを表示
+                                            if (snapshot
+                                                    .data?.docs.isNotEmpty ==
+                                                true) {
+                                              return Container(
+                                                // 下部に1のパディングを追加
+                                                width: 12.0, // 円の直径
+                                                height: 12.0, // 円の直径
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red, // 背景色を赤に設定
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color:
+                                                        Colors.black, // 枠の色を設定
+                                                    width: 1.0, // 枠の幅を設定
+                                                  ), // 形状を円に設定
+                                                ),
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.topCenter,
+                                                  child: Text(
+                                                    '${snapshot.data?.docs.length ?? 0}',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 6,
+                                                      fontWeight: FontWeight
+                                                          .bold, // テキストのサイズを適切に調整
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              // ドキュメントの数が0の場合は何も表示しない
+                                              return SizedBox.shrink();
+                                            }
+                                        }
+                                      },
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 16),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SettingsPage(),
+                                ), // NotificationPageに遷移
+                              );
+                            },
+                            child: SvgPicture.asset(
+                              'assets/icon_settings.svg',
+                              width: 22,
+                              height: 24,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 19.0),
-                      Container(
-                        width: 386.0, // 幅を設定
-                        height: 68.0, // 高さを設定
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF1E5),
-                          border:
-                              Border.all(color: Colors.black, width: 2), // 枠を設定
-                          borderRadius: BorderRadius.circular(10), // 角を丸くする
-                        ),
-                        child: CustomTabBar(tabController: _tabController),
+                    ),
+                  ),
+                  body: SearchBar(),
+                ),
+              ),
+            );
+        }
+      },
+    );
+  }
+}
+
+class SearchBar extends StatefulWidget {
+  const SearchBar({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _SearchBarState createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<SearchBar>
+    with SingleTickerProviderStateMixin {
+  late final TextEditingController _searchController;
+  late TabController _tabController;
+  bool _isTextFieldEmpty = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+
+    _searchController = TextEditingController();
+
+    _searchController.addListener(() {
+      setState(() {
+        // テキストフィールドが空かどうかをチェック
+        _isTextFieldEmpty = _searchController.text.isEmpty;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(
+          child: Container(
+            width: 386.0, // 幅を設定
+            height: 57.0,
+            decoration: BoxDecoration(
+              color: const Color(0xffffffff), // 背景色を設定
+              borderRadius: BorderRadius.circular(28.5),
+              border: Border.all(
+                color: Colors.black, // 線の色を設定
+                width: 1.5, // 線の幅を設定
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromARGB(255, 24, 24, 55)
+                      .withOpacity(1), // 影の色を設定
+                  spreadRadius: 0.1, // 影の広がりを設定
+                  blurRadius: 1, // 影のぼかしを設定
+                  offset: const Offset(3, 3), // 影の位置を設定
+                ),
+              ],
+            ),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 120.0), // 左側に余白を追加
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15.0),
+                    border: InputBorder.none,
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(left: 20.0, right: 10.0),
+                      child: Image.asset(
+                        'assets/icon_search.png', // 画像のパスを指定
+                        width: 22.0, // 幅を調整
+                        height: 22.0, // 高さを調整
                       ),
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            HomeAllPage(email: widget.email),
-                            HomeMyPage(
-                                email: widget.email), // HomeMyPage widget
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
+                    hintText: '気になる質問を探してみよう...', // ヒントテキストを追加
+                    hintStyle: const TextStyle(
+                      fontSize: 15.0, // フォントサイズを大きくする
+                      color: Colors.grey, // フォントカラーを設定
+                    ),
                   ),
                 ),
               ),
             ),
-          );
-        } else {
-          return const CircularProgressIndicator();
-        }
-      },
+          ),
+        ),
+        const SizedBox(height: 19.0),
+        if (_isTextFieldEmpty) ...[
+          CustomTabBarContainer(
+            tabController: _tabController,
+          ),
+        ] else ...[
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('questions')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) return Text('エラーが発生しました');
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  return CircularProgressIndicator();
+
+                // クライアントサイドでのフィルタリング
+                var filteredDocs = snapshot.data!.docs.where((document) {
+                  String text1 = document['text1'];
+                  String text2 = document['text2'];
+                  String searchText = _searchController.text.toLowerCase();
+                  return text1.toLowerCase().contains(searchText) ||
+                      text2.toLowerCase().contains(searchText);
+                }).toList();
+
+                // return ListView(
+                //   children: filteredDocs.map((DocumentSnapshot document) {
+                //     Map<String, dynamic> data =
+                //         document.data()! as Map<String, dynamic>;
+                //     return ListTile(
+                //       title: Text(data['text1'] ?? '無題'),
+                //       subtitle: Text(data['text2'] ?? '無し'),
+                //     );
+                //   }).toList(),
+                // );
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: MediaQuery.of(context).size.width * 0.0512),
+                  child: all_page.QuestionCard(snapshot: filteredDocs),
+                ); // all_page エイリアスを使用
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class CustomTabBarContainer extends StatelessWidget {
+  final TabController tabController;
+
+  const CustomTabBarContainer({
+    Key? key,
+    required this.tabController,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            width: 386.0, // 幅を設定
+            height: 68.0, // 高さを設定
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF1E5),
+              border: Border.all(color: Colors.black, width: 2), // 枠を設定
+              borderRadius: BorderRadius.circular(10), // 角を丸くする
+            ),
+            child: CustomTabBar(tabController: tabController),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: tabController,
+              children: [
+                HomeAllPage(),
+                HomeMyPage(), // HomeMyPage widget
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

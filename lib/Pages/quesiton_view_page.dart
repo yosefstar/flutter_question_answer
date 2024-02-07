@@ -270,7 +270,7 @@ class QuestionViewPage extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) => QuestionDetailPage(
                           questionId: docId, // docIdを遷移先に渡す
-                          showPostedMessage: true, // 投稿完了メッセージを表示するためにtrueを渡す
+                          showPostedMessage: true,
                         ),
                       ),
                     );

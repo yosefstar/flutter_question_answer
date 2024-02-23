@@ -48,6 +48,7 @@ dependencies:
   smooth_page_indicator: ^1.1.0
   auto_route: ^7.8.4
   riverpod: ^2.5.0
+  flutter_riverpod: ^2.4.10
   
 
 dev_dependencies:

@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
 
-class TabIndexProvider with ChangeNotifier {
-  int _selectedIndex = 0;
+// class TabIndexProvider with ChangeNotifier {
+//   int _selectedIndex = 0;
 
-  int get selectedIndex => _selectedIndex;
+//   int get selectedIndex => _selectedIndex;
 
-  void setIndex(int index) {
-    if (_selectedIndex != index) {
-      _selectedIndex = index;
-      notifyListeners();
-    }
-  }
-}
+//   void setIndex(int index) {
+//     if (_selectedIndex != index) {
+//       _selectedIndex = index;
+//       notifyListeners();
+//     }
+//   }
+// }

@@ -1133,8 +1133,6 @@ class _ProfileFourTabsState extends State<ProfileFourTabs> {
                           return ListView.builder(
                             itemCount: questionDocs.length,
                             itemBuilder: (BuildContext context, int index) {
-                              DocumentSnapshot document =
-                                  questionsSnapshot.data!.docs[index];
                               DocumentSnapshot questionDoc =
                                   questionDocs[index];
                               Map<String, dynamic> questionData =

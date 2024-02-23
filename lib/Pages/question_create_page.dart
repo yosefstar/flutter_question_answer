@@ -14,7 +14,7 @@ class _QuestionCreatePageState extends State<QuestionCreatePage> {
   final _text1Controller = TextEditingController();
   final _text2Controller = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String? _errorMessage;
+
 
   @override
   Widget build(BuildContext context) {
@@ -206,10 +206,7 @@ class _QuestionCreatePageState extends State<QuestionCreatePage> {
                           );
                         }
                       } else {
-                        // バリデーションが失敗した場合の処理
-                        setState(() {
-                          _errorMessage = '入力エラーがあります。'; // エラーメッセージを設定
-                        });
+                    
                       }
                     },
                     child: Container(

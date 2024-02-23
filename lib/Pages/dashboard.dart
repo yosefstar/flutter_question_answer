@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_question_answer/presentation/signin/signin_page.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import 'register_page.dart';
-import 'sign_in_page.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -16,6 +16,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        
         children: <Widget>[
           PageView(
             controller: _pageController, // PageControllerをPageViewに接続

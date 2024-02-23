@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_question_answer/Pages/dashboard.dart';
-import 'sign_in_page.dart'; // SignInPageが定義されているパスをインポート
+
 
 class FirstPage extends StatelessWidget {
   @override

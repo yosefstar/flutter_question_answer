@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'firebase_access_test.dart';
-import 'profile.dart';
-import 'sign_in_page.dart';
 
 class IconSelector extends StatefulWidget {
   final List<String> iconUrls;
@@ -268,14 +264,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 fillColor: Colors.white,
               ),
               keyboardType: TextInputType.emailAddress, // キーボードタイプをメールアドレス用に設定
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'メールアドレスを入力してください。'; // 空の場合のエラーメッセージ
-                } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value)) {
-                  return '無効なメールアドレス形式です。'; // メールアドレスの形式が無効な場合のエラーメッセージ
-                }
-                return null; // 入力が有効な場合はnullを返す
-              },
+              
             ),
             SizedBox(
               height: 20,

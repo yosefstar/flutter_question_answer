@@ -610,8 +610,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                                               Map<String, dynamic> userData =
                                                   snapshot.data!.data()
                                                       as Map<String, dynamic>;
-                                              String currentUserNickname =
-                                                  userData['nickname'] ?? '匿名';
+                                     
                                               return Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.center,

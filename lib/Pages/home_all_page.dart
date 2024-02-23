@@ -29,7 +29,7 @@ class _HomeAllPageState extends State<HomeAllPage> {
     // User? user = FirebaseAuth.instance.currentUser; // 現在のユーザーを取得
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: MediaQuery.of(context).size.width * 0.0512),
+          horizontal: MediaQuery.sizeOf(context).width * 0.0512),
       child: Scaffold(
         backgroundColor: Colors.transparent, // Scaffoldの背景色を透明に設定
 

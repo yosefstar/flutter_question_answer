@@ -46,9 +46,8 @@ dependencies:
   google_fonts: ^6.1.0
   flutter_svg: ^2.0.9
   smooth_page_indicator: ^1.1.0
-  auto_route: ^7.8.4
-  riverpod: ^2.5.0
-  flutter_riverpod: ^2.4.10
+  flutter_riverpod:
+  riverpod_annotation:
   
 
 dev_dependencies:
@@ -62,9 +61,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
-  auto_route_generator: ^7.3.2
-  build_runner: ^2.4.8
-
+  riverpod_generator: 
+  build_runner:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

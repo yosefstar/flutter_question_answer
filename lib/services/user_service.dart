@@ -7,10 +7,12 @@ class UserService {
 
   Future<bool> signInWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
       User? user = userCredential.user;
       if (user != null) {
-        final DocumentSnapshot docSnap = await _firestore.collection('users').doc(user.uid).get();
+        final DocumentSnapshot docSnap =
+            await _firestore.collection('users').doc(user.uid).get();
         if (docSnap.exists) {
           print('ニックネーム: ${docSnap.get('nickname')}');
           return true; // ログイン成功
@@ -26,3 +28,5 @@ class UserService {
     return false; // ログイン失敗
   }
 }
+
+// この部分をriverpooで状態管理する。

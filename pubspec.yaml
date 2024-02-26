@@ -48,6 +48,7 @@ dependencies:
   smooth_page_indicator: ^1.1.0
   flutter_riverpod:
   riverpod_annotation:
+
   
 
 dev_dependencies:
@@ -63,6 +64,14 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   riverpod_generator: 
   build_runner:
+  flutter_native_splash:
+
+flutter_native_splash:
+  color: "#42a5f5"
+  image: assets/test12.jpg
+  fill: true
+  android: true
+  ios: true
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

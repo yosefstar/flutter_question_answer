@@ -132,6 +132,8 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(
               height: 20,
             ),
+
+            /// この部分をriverpodで書き換える
             ElevatedButton(
               onPressed: () => logout(context),
               child: Text('ログアウト'),

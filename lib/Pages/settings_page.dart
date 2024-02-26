@@ -2,11 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_question_answer/Pages/dashboard.dart';
+import 'package:flutter_question_answer/auth_state_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
   @override
-  _SettingsPageState createState() => _SettingsPageState();
+  State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
@@ -15,7 +19,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFECEB),
+      backgroundColor: const Color(0xFFFFECEB),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(80.0), // AppBarの高さを80に設定
         child: SafeArea(
@@ -23,7 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
             padding: EdgeInsets.symmetric(
               horizontal: MediaQuery.of(context).size.width * 0.049,
             ),
-            child: Container(
+            child: SizedBox(
               height: 146.0,
               child: Row(
                 children: <Widget>[
@@ -80,11 +84,11 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         child: Column(
           children: <Widget>[
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Container(
               height: 64,
               decoration: BoxDecoration(
-                color: Color(0xFFFFF1E5), // Containerの背景色を設定
+                color: const Color(0xFFFFF1E5), // Containerの背景色を設定
                 border: Border.all(
                   color: Colors.black, // 枠線の色
                   width: 1.5, // 枠線の太さ
@@ -93,7 +97,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               child: Row(
                 children: <Widget>[
-                  SizedBox(
+                  const SizedBox(
                     width: 20,
                   ),
                   SizedBox(
@@ -102,18 +106,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: SvgPicture.asset(
                         'assets/icon_notification.svg'), // SVGファイルを表示
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 12,
                   ),
-                  Text(
+                  const Text(
                     'アプリからの通知',
                     style: TextStyle(
-                      fontSize: 14, // フォントサイズを14に設定
-                      fontWeight: FontWeight.bold, // フォントを太字に設定
-                      // 他に必要なスタイルがあればここに追加
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Spacer(),
+                  const Spacer(),
                   CupertinoSwitch(
                     value: _isSwitched,
                     onChanged: (bool value) {
@@ -123,21 +126,47 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                     activeColor: Colors.black, // スイッチがオンのときの色
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 20,
                   )
                 ],
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
 
             /// この部分をriverpodで書き換える
-            ElevatedButton(
-              onPressed: () => logout(context),
-              child: Text('ログアウト'),
-            )
+            Consumer(
+              builder: (context, ref, child) {
+                // authStateProviderから認証状態を監視
+                final userAsyncValue = ref.watch(authStateNotifierProvider);
+
+                return userAsyncValue.when(
+                  data: (User? user) {
+                    if (user == null) {
+                      // ユーザーがログインしていない場合、新規登録ボタンを表示
+                      return ElevatedButton(
+                        onPressed: () {
+                          // 新規登録処理をここに実装
+                        },
+                        child: const Text('新規登録'),
+                      );
+                    } else {
+                      // ユーザーがログインしている場合、ログアウトボタンを表示
+                      return ElevatedButton(
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                        },
+                        child: const Text('ログアウト'),
+                      );
+                    }
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, stack) => const Text('エラーが発生しました'),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -145,11 +174,15 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-void logout(BuildContext context) async {
-  await FirebaseAuth.instance.signOut(); // ユーザーをログアウトさせる
-  // ログアウト後、ログインページに遷移
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => DashboardPage()), // LoginPageに遷移する
-  );
+void logout(BuildContext context) {
+  FirebaseAuth.instance.signOut().then((_) {
+    // ログアウト後、ログインページに遷移
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => DashboardPage()), // LoginPageに遷移する
+    );
+  }).catchError((error) {
+    // エラー処理をここに記述
+  });
 }

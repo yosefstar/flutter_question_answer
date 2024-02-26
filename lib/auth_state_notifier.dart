@@ -6,8 +6,8 @@ part 'auth_state_notifier.g.dart';
 @riverpod
 class AuthStateNotifier extends _$AuthStateNotifier {
   @override
-  User? build() {
-    // FirebaseAuthのcurrentUserを返す
-    return FirebaseAuth.instance.currentUser;
+  Stream<User?> build() {
+    // FirebaseAuthのauthStateChangesをリッスンし、ユーザーの状態変更を監視
+    return FirebaseAuth.instance.authStateChanges();
   }
 }

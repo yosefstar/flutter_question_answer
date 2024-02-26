@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_question_answer/Pages/dashboard.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -127,9 +129,25 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
               ),
             ),
+            SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+              onPressed: () => logout(context),
+              child: Text('ログアウト'),
+            )
           ],
         ),
       ),
     );
   }
+}
+
+void logout(BuildContext context) async {
+  await FirebaseAuth.instance.signOut(); // ユーザーをログアウトさせる
+  // ログアウト後、ログインページに遷移
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => DashboardPage()), // LoginPageに遷移する
+  );
 }

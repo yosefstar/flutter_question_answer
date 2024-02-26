@@ -1,7 +1,5 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_question_answer/Pages/home_page.dart';
-import 'package:flutter_question_answer/router/app_router.dart';
 import 'package:flutter_question_answer/services/user_service.dart';
 import 'package:flutter_svg/svg.dart';
 

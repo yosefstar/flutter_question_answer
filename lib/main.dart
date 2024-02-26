@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_question_answer/Pages/first_page.dart';
 import 'package:flutter_question_answer/Pages/home_page.dart';
-import 'package:flutter_question_answer/router/app_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'services/firebase_initializer.dart';
 
@@ -13,12 +13,15 @@ Future<void> _backgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseInitializer.initialize();
-  runApp(MyApp());
+  runApp(
+    ProviderScope(
+      // ProviderScopeでアプリケーションをラップ
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  final _appRouter = AppRouter();
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
